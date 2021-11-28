@@ -4,10 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.*
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+
 import com.ddona.l2011service.databinding.ActivityMainBinding
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.net.URL
+import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), Runnable {
 
@@ -28,6 +33,46 @@ class MainActivity : AppCompatActivity(), Runnable {
         }
     }
 
+    suspend fun getUserInfo() {
+        Log.d("doanpt", "Start get user info ${System.currentTimeMillis()}")
+        val userFriends = mainScope.async {
+            getUserFriend()
+        }
+//        val userMessages = mainScope.async {
+//            getUserMessages()
+//        }
+//
+        val userMessage = withContext(Dispatchers.IO) {
+            getUserMessages()
+        }
+        val userInfo = userFriends.await() + userMessage
+        Log.d("doanpt", "user Info is $userInfo")
+        Log.d("doanpt", "Stop get user info ${System.currentTimeMillis()}")
+    }
+
+
+    suspend fun getUserFriend(): String {
+        //FAKE
+        Log.d("doanpt", "start get user friends")
+        Thread.sleep(5000)
+        Log.d("doanpt", "stop get user friends")
+        return "Friends"
+    }
+
+    suspend fun getUserMessages(): String {
+        //FAKE
+        Log.d("doanpt", "start get user message")
+        Thread.sleep(3000)
+        Log.d("doanpt", "stop get user message")
+        return "Messages"
+    }
+
+    private val job: Job = Job()
+    private val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    private val mainScope = CoroutineScope(coroutineContext)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -37,11 +82,36 @@ class MainActivity : AppCompatActivity(), Runnable {
 //        }
 
         binding.btnLoad.setOnClickListener {
-            DownloadFile(this).execute(
-                "https://photo-cms-baonghean.zadn.vn/w607/Uploaded/2021/ftgbtgazsnzm/2020_07_14/ngoctrinhmuonsinhcon1_swej7996614_1472020.jpg",
-            )
+            //Application scope
+//            GlobalScope.launch(Dispatchers.IO) {
+//                downloadImageCoroutines()
+//            }
+            mainScope.launch(Dispatchers.IO) {
+//                downloadImageCoroutines()
+                getUserInfo()
+//                downloadImage()
+            }
+
+//            DownloadFile(this).execute(
+//                "https://photo-cms-baonghean.zadn.vn/w607/Uploaded/2021/ftgbtgazsnzm/2020_07_14/ngoctrinhmuonsinhcon1_swej7996614_1472020.jpg",
+//            )
+//            runBlocking {
+//                downloadImageCoroutines()
+//            }
 //            val thread = Thread(this)
 //            thread.start()
+        }
+    }
+
+    suspend fun downloadImageCoroutines() {
+        val link =
+            "https://photo-cms-baonghean.zadn.vn/w607/Uploaded/2021/ftgbtgazsnzm/2020_07_14/ngoctrinhmuonsinhcon1_swej7996614_1472020.jpg"
+        val url = URL(link)
+        val connection = url.openConnection()
+        val inputStream = connection.getInputStream()
+        bitmap = BitmapFactory.decodeStream(inputStream)
+        withContext(Dispatchers.Main) {
+            binding.imgAvatar.setImageBitmap(bitmap)
         }
     }
 
@@ -106,5 +176,10 @@ class MainActivity : AppCompatActivity(), Runnable {
 //        binding.imgAvatar.postDelayed({
 //            binding.imgAvatar.setImageBitmap(bitmap)
 //        }, 5000)
+    }
+
+    override fun onDestroy() {
+        job.cancel()
+        super.onDestroy()
     }
 }
