@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.ddona.l2011service.databinding.ActivityMusicBinding
 import com.ddona.l2011service.media.MediaManager
+import com.ddona.l2011service.service.DemoBindService
 import com.ddona.l2011service.service.MusicService
 
 class MusicActivity : AppCompatActivity() {
@@ -36,6 +37,12 @@ class MusicActivity : AppCompatActivity() {
         binding.btnPrevious.setOnClickListener {
             musicService.previousSong()
         }
+    }
+
+    private fun startIntentService() {
+        val intent = Intent(this, DemoBindService::class.java)
+        intent.action = "Download"
+        startService(intent)
     }
 
 
