@@ -43,6 +43,7 @@ object MediaManager {
             mediaState = MEDIA_PAUSED
         } else if (mediaState == MEDIA_PAUSED) {
             mediaPlayer.start()
+            mediaState = MEDIA_PLAYING
         }
     }
 

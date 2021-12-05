@@ -2,12 +2,15 @@ package com.ddona.l2011service
 
 import android.Manifest
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -17,6 +20,7 @@ import com.ddona.l2011service.service.MusicService
 
 class MusicActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMusicBinding
+    private lateinit var musicService: MusicService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,9 +28,14 @@ class MusicActivity : AppCompatActivity() {
         setContentView(binding.root)
         startMusicService()
         binding.btnNext.setOnClickListener {
+            musicService.nextSong()
         }
-        binding.btnPlayPause.setOnClickListener { }
-        binding.btnPrevious.setOnClickListener { }
+        binding.btnPlayPause.setOnClickListener {
+            musicService.playPauseSong()
+        }
+        binding.btnPrevious.setOnClickListener {
+            musicService.previousSong()
+        }
     }
 
 
@@ -37,5 +46,18 @@ class MusicActivity : AppCompatActivity() {
         } else {
             startService(intent)
         }
+        bindService(intent, connection, BIND_AUTO_CREATE)
+    }
+
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder: MusicService.MusicBinder = service as MusicService.MusicBinder
+            musicService = binder.getMusicService()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+        }
+
     }
 }

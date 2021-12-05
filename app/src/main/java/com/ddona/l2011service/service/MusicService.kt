@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import com.ddona.l2011service.R
@@ -12,13 +13,21 @@ import com.ddona.l2011service.media.MediaManager
 
 class MusicService : Service() {
 
+    private val binder = MusicBinder()
 
     override fun onCreate() {
         super.onCreate()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    override fun onBind(intent: Intent?): IBinder {
+        return binder
+    }
+
+    inner class MusicBinder : Binder() {
+
+        fun getMusicService(): MusicService {
+            return this@MusicService
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -43,6 +52,18 @@ class MusicService : Service() {
         val notification = builder.build()
 //        notificationManager.notify(1, notification)
         startForeground(1, notification)
+    }
+
+    fun nextSong() {
+        MediaManager.nextSong()
+    }
+
+    fun previousSong() {
+        MediaManager.previousSong()
+    }
+
+    fun playPauseSong() {
+        MediaManager.playPauseSong()
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
