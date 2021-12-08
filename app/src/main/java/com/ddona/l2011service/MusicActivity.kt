@@ -38,7 +38,7 @@ class MusicActivity : AppCompatActivity() {
         binding.btnPrevious.setOnClickListener {
             musicService.previousSong()
             val intent = Intent("com.ddona.deptrai")
-//            sendBroadcast(intent)
+            sendBroadcast(intent,"com.ddona.receiver.DEMO_RECEIVER")
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         }
     }
