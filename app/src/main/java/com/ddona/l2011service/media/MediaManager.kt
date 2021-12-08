@@ -8,7 +8,7 @@ import com.ddona.l2011service.model.Song
 
 object MediaManager {
 
-    private val mediaPlayer: MediaPlayer = MediaPlayer()
+    val mediaPlayer: MediaPlayer = MediaPlayer()
     private val songList = arrayListOf<Song>()
 
     private var currentSong = 0

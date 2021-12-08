@@ -9,7 +9,7 @@
 
     <permission
         android:name="com.ddona.receiver.DEMO_RECEIVER"
-        android:protectionLevel="signature" />
+        android:protectionLevel="signatureOrSystem" />
 
     <application
         android:allowBackup="true"
@@ -42,6 +42,7 @@
         <service
             android:name=".service.MusicService"
             android:enabled="true"
+            android:permission="com.ddona.receiver.DEMO_RECEIVER"
             android:exported="true" />
 
         <receiver

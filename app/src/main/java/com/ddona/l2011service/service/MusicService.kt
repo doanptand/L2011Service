@@ -1,9 +1,6 @@
 package com.ddona.l2011service.service
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,13 +12,14 @@ import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.ddona.l2011service.MusicActivity
 import com.ddona.l2011service.R
 import com.ddona.l2011service.media.MediaManager
 import com.ddona.l2011service.receiver.FirstReceiver
 import com.ddona.l2011service.receiver.LocalReceiver
 import com.ddona.l2011service.receiver.SecondReceiver
 import com.ddona.l2011service.util.Const
-
+//https://developer.android.com/training/notify-user/expanded?fbclid=IwAR015ZJREsGcujfcEvP8Pw-MKAUjQNjUZca6KtLEIzuUWzfNtSxVV4NrGQ8#media-style
 class MusicService : Service() {
 
     private val binder = MusicBinder()
@@ -29,6 +27,8 @@ class MusicService : Service() {
     private val secondReceiver = SecondReceiver()
     private val localReceiver = LocalReceiver()
     private val musicReceiver = MusicReceiver()
+    private lateinit var notificationView: RemoteViews
+    private lateinit var builder: Notification.Builder
     override fun onCreate() {
         super.onCreate()
         val musicFilter = IntentFilter()
@@ -83,13 +83,54 @@ class MusicService : Service() {
     }
 
     private fun runForeground() {
-        val notificationView = RemoteViews(packageName, R.layout.layout_notification)
+        notificationView = RemoteViews(packageName, R.layout.layout_notification)
 
+        val nextIntent = Intent(Const.ACTION_NEXT_SONG)
+        val nextAction = PendingIntent.getBroadcast(
+            this,
+            1,
+            nextIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        notificationView.setOnClickPendingIntent(R.id.ibNext, nextAction)
 
-//        notificationView.setOnClickPendingIntent(R.id.ibNext, nextPendingIntent)
+        val previousIntent = Intent(Const.ACTION_PREVIOUS_SONG)
+        val previousAction = PendingIntent.getBroadcast(
+            this,
+            1,
+            previousIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        notificationView.setOnClickPendingIntent(R.id.ibPre, previousAction)
 
+        val playPauseIntent = Intent(Const.ACTION_PLAY_PAUSE_SONG)
+        val playPauseAction = PendingIntent.getBroadcast(
+            this,
+            1,
+            playPauseIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        notificationView.setOnClickPendingIntent(R.id.ibPause, playPauseAction)
 
-        val builder = Notification.Builder(this)
+        val stopIntent = Intent(Const.ACTION_STOP_MUSIC)
+        val stopAction = PendingIntent.getBroadcast(
+            this,
+            1,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        notificationView.setOnClickPendingIntent(R.id.ibNotiClose, stopAction)
+
+        val clickIntent = Intent(this, MusicActivity::class.java)
+        val clickAction = PendingIntent.getActivity(
+            this,
+            1,
+            clickIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        notificationView.setOnClickPendingIntent(R.id.ll_notification, clickAction)
+
+        builder = Notification.Builder(this)
         builder.setContentText("This is music app")
         builder.setContentTitle("Music")
         builder.setSmallIcon(R.mipmap.ic_launcher)
@@ -129,9 +170,8 @@ class MusicService : Service() {
 
     override fun onDestroy() {
         unregisterReceiver(firstReceiver)
-        Log.d("doanpt","service destroy")
+        Log.d("doanpt", "service destroy")
         MediaManager.mediaStop()
-        stopForeground(true)
         super.onDestroy()
     }
 
@@ -146,10 +186,16 @@ class MusicService : Service() {
                     MediaManager.previousSong()
                 }
                 Const.ACTION_PLAY_PAUSE_SONG -> {
+                    if (MediaManager.mediaPlayer.isPlaying) {
+                        notificationView.setImageViewResource(R.id.ibPause, R.drawable.ic_pause)
+                    } else {
+                        notificationView.setImageViewResource(R.id.ibPause, R.drawable.ic_play)
+                    }
                     MediaManager.playPauseSong()
+                    startForeground(1, builder.build())
                 }
                 Const.ACTION_STOP_MUSIC -> {
-                    this@MusicService.stopSelf()
+                    this@MusicService.stopForeground(true)
                 }
             }
         }
