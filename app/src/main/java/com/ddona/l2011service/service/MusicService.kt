@@ -4,11 +4,14 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -17,6 +20,7 @@ import com.ddona.l2011service.media.MediaManager
 import com.ddona.l2011service.receiver.FirstReceiver
 import com.ddona.l2011service.receiver.LocalReceiver
 import com.ddona.l2011service.receiver.SecondReceiver
+import com.ddona.l2011service.util.Const
 
 class MusicService : Service() {
 
@@ -24,9 +28,17 @@ class MusicService : Service() {
     private val firstReceiver = FirstReceiver()
     private val secondReceiver = SecondReceiver()
     private val localReceiver = LocalReceiver()
-
+    private val musicReceiver = MusicReceiver()
     override fun onCreate() {
         super.onCreate()
+        val musicFilter = IntentFilter()
+        musicFilter.addAction(Const.ACTION_STOP_MUSIC)
+        musicFilter.addAction(Const.ACTION_PLAY_PAUSE_SONG)
+        musicFilter.addAction(Const.ACTION_PREVIOUS_SONG)
+        musicFilter.addAction(Const.ACTION_NEXT_SONG)
+        registerReceiver(musicReceiver, musicFilter)
+
+
         val firstFilter = IntentFilter()
         firstFilter.addAction("android.intent.action.SCREEN_ON")
         firstFilter.addAction(Intent.ACTION_SCREEN_ON)
@@ -117,6 +129,30 @@ class MusicService : Service() {
 
     override fun onDestroy() {
         unregisterReceiver(firstReceiver)
+        Log.d("doanpt","service destroy")
+        MediaManager.mediaStop()
+        stopForeground(true)
         super.onDestroy()
+    }
+
+    inner class MusicReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d("doanpt", "music receiver: ${intent?.action}")
+            when (intent?.action) {
+                Const.ACTION_NEXT_SONG -> {
+                    MediaManager.nextSong()
+                }
+                Const.ACTION_PREVIOUS_SONG -> {
+                    MediaManager.previousSong()
+                }
+                Const.ACTION_PLAY_PAUSE_SONG -> {
+                    MediaManager.playPauseSong()
+                }
+                Const.ACTION_STOP_MUSIC -> {
+                    this@MusicService.stopSelf()
+                }
+            }
+        }
+
     }
 }
