@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ddona.l2011service.databinding.ActivityMusicBinding
 import com.ddona.l2011service.media.MediaManager
 import com.ddona.l2011service.service.DemoBindService
@@ -36,6 +37,9 @@ class MusicActivity : AppCompatActivity() {
         }
         binding.btnPrevious.setOnClickListener {
             musicService.previousSong()
+            val intent = Intent("com.ddona.deptrai")
+//            sendBroadcast(intent)
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         }
     }
 
